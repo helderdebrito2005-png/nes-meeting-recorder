@@ -132,6 +132,10 @@ async function submitAuth(e, endpoint) {
   }
 }
 
+el('google-login-btn').addEventListener('click', () => {
+  location.href = '/auth/google/login';
+});
+
 function enterApp(user) {
   currentUser = user;
   userNameEl.textContent = `👋 ${user.name.split(' ')[0]}`;

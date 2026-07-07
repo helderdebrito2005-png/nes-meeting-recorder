@@ -1,6 +1,7 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
+const crypto = require('crypto');
 const express = require('express');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
@@ -349,7 +350,7 @@ app.get('/api/meetings/:id', requireAuth, async (req, res, next) => {
   }
 });
 
-// ---------- Google Drive ----------
+// ---------- Google OAuth (sign-in + Drive connection share one callback, split by state) ----------
 app.get('/auth/google', (req, res) => {
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     return res.status(500).send('Google credentials are not configured (see README).');
@@ -357,13 +358,56 @@ app.get('/auth/google', (req, res) => {
   const url = getOAuthClient().generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',
-    scope: ['https://www.googleapis.com/auth/drive.file']
+    scope: ['https://www.googleapis.com/auth/drive.file'],
+    state: 'drive'
+  });
+  res.redirect(url);
+});
+
+// "Continue with Google" — sign in / create an account with a Google profile
+app.get('/auth/google/login', (req, res) => {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    return res.status(500).send('Google credentials are not configured (see README).');
+  }
+  const url = getOAuthClient().generateAuthUrl({
+    scope: [
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile'
+    ],
+    prompt: 'select_account',
+    state: 'login'
   });
   res.redirect(url);
 });
 
 app.get('/auth/google/callback', async (req, res) => {
   try {
+    if (req.query.state === 'login') {
+      // Google sign-in: fetch the profile, find or create the user, start a session
+      const client = getOAuthClient();
+      const { tokens } = await client.getToken(req.query.code);
+      client.setCredentials(tokens);
+      const oauth2 = google.oauth2({ version: 'v2', auth: client });
+      const { data: profile } = await oauth2.userinfo.get();
+
+      const email = (profile.email || '').trim().toLowerCase();
+      if (!email) return res.status(500).send('Google did not return an email address.');
+
+      let user = await one('SELECT id FROM users WHERE email = ?', [email]);
+      if (!user) {
+        // Google accounts have no local password — store an unusable random hash
+        const randomHash = bcrypt.hashSync(crypto.randomBytes(32).toString('hex'), 10);
+        const rs = await run('INSERT INTO users (name, email, password_hash, created_at) VALUES (?, ?, ?, ?)', [
+          profile.name || email.split('@')[0], email, randomHash, new Date().toISOString()
+        ]);
+        req.session.userId = Number(rs.lastInsertRowid);
+      } else {
+        req.session.userId = Number(user.id);
+      }
+      return res.redirect('/');
+    }
+
+    // Drive connection flow (school-wide)
     const { tokens } = await getOAuthClient().getToken(req.query.code);
     await setSetting('google_tokens', JSON.stringify(tokens));
     res.redirect('/?drive=connected');

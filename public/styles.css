@@ -121,6 +121,42 @@ form input:focus { outline: none; border-color: var(--blue); }
 .muted { color: var(--muted); font-weight: 400; font-size: 0.85rem; }
 .form-error { color: var(--red); font-size: 0.9rem; margin-top: 12px; font-weight: 700; }
 
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  height: 1.5px;
+  background: var(--border);
+}
+
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.google-btn:hover { border-color: var(--blue); background: #f8faff; }
+
 /* ===== Top navigation ===== */
 .topbar {
   display: flex;
