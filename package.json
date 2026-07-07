@@ -1,0 +1,22 @@
+{
+  "name": "meeting-recorder",
+  "version": "2.0.0",
+  "description": "Nancy's English School — record meetings, transcribe live, summarize with Claude, save to Google Drive",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.110.0",
+    "@libsql/client": "^0.17.4",
+    "bcryptjs": "^3.0.3",
+    "cookie-session": "^2.1.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "googleapis": "^173.0.0"
+  }
+}

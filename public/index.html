@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nancy's English School — Meeting Recorder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poiret+One&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="brand">
+      <div class="logo-card">
+        <h1>Nancy&rsquo;s English School</h1>
+      </div>
+      <p class="subtitle">Meeting Recorder &mdash; record, transcribe &amp; summarize your meetings</p>
+    </header>
+
+    <div id="config-warning" class="banner warning hidden"></div>
+    <div id="browser-warning" class="banner warning hidden">
+      ⚠️ This browser doesn't support live speech recognition. Please use Google Chrome or Microsoft Edge.
+    </div>
+
+    <!-- ============ AUTH VIEW ============ -->
+    <section id="auth-view" class="hidden">
+      <div class="card auth-card">
+        <div class="auth-tabs">
+          <button id="tab-login" class="auth-tab active">Sign in</button>
+          <button id="tab-register" class="auth-tab">Create account</button>
+        </div>
+
+        <form id="login-form">
+          <label>Email
+            <input name="email" type="email" required autocomplete="email" />
+          </label>
+          <label>Password
+            <input name="password" type="password" required autocomplete="current-password" />
+          </label>
+          <button type="submit" class="primary-btn full">Sign in</button>
+        </form>
+
+        <form id="register-form" class="hidden">
+          <label>Full name
+            <input name="name" type="text" required autocomplete="name" />
+          </label>
+          <label>Email
+            <input name="email" type="email" required autocomplete="email" />
+          </label>
+          <label>Password <span class="muted">(min. 6 characters)</span>
+            <input name="password" type="password" required minlength="6" autocomplete="new-password" />
+          </label>
+          <button type="submit" class="primary-btn full">Create account</button>
+        </form>
+
+        <p id="auth-error" class="form-error hidden"></p>
+      </div>
+    </section>
+
+    <!-- ============ APP VIEW ============ -->
+    <section id="app-view" class="hidden">
+      <nav class="topbar">
+        <div class="nav-tabs">
+          <button id="nav-record" class="nav-tab active">🎙️ New Meeting</button>
+          <button id="nav-history" class="nav-tab">📋 My Meetings</button>
+        </div>
+        <div class="user-box">
+          <span id="user-name"></span>
+          <button id="logout-btn" class="small-btn">Log out</button>
+        </div>
+      </nav>
+
+      <!-- ---- Record tab ---- -->
+      <div id="record-tab">
+        <div class="card recorder">
+          <input id="meeting-title" type="text" placeholder="Meeting title (optional)" />
+
+          <div class="record-controls">
+            <button id="record-btn" class="record-btn">
+              <span class="dot"></span>
+              <span id="record-label">Start Recording</span>
+            </button>
+            <span id="timer" class="timer">00:00</span>
+            <select id="language" title="Speech language">
+              <option value="mix">🇵🇹+🇬🇧 Português + English</option>
+              <option value="pt-PT">🇵🇹 Português (PT)</option>
+              <option value="pt-BR">🇧🇷 Português (BR)</option>
+              <option value="en-US">🇺🇸 English (US)</option>
+              <option value="en-GB">🇬🇧 English (UK)</option>
+            </select>
+          </div>
+
+          <div id="live-transcript-box" class="live-transcript hidden">
+            <div class="live-label"><span class="pulse-dot"></span> Live transcript</div>
+            <div id="live-transcript" class="content transcript"></div>
+          </div>
+        </div>
+
+        <section id="status" class="status hidden"></section>
+
+        <section id="results" class="hidden">
+          <div class="card">
+            <div class="card-header">
+              <h2>Summary</h2>
+              <button id="copy-summary" class="small-btn">Copy</button>
+            </div>
+            <div id="summary" class="content"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2>Transcript</h2>
+              <button id="copy-transcript" class="small-btn">Copy</button>
+            </div>
+            <div id="transcript" class="content transcript"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><h2>Participants</h2></div>
+            <p class="muted">Select who was in this meeting — they'll see it in their history.</p>
+            <div id="participant-list" class="participant-list"></div>
+            <div class="save-row">
+              <button id="save-meeting-btn" class="primary-btn">💾 Save meeting</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="saved-actions" class="card hidden">
+          <div class="card-header"><h2>✅ Meeting saved</h2></div>
+          <div class="save-row">
+            <button id="save-drive-btn" class="secondary-btn">Save to Google Drive</button>
+            <a id="drive-link" class="hidden" target="_blank" rel="noopener">Open in Drive ↗</a>
+            <button id="new-meeting-btn" class="small-btn">Start another meeting</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- ---- History tab ---- -->
+      <div id="history-tab" class="hidden">
+        <div id="meeting-list"></div>
+
+        <section id="meeting-detail" class="hidden">
+          <button id="back-to-list" class="small-btn">← Back to list</button>
+          <div class="card">
+            <div class="card-header">
+              <h2 id="detail-title"></h2>
+            </div>
+            <p id="detail-meta" class="muted"></p>
+            <div class="detail-section"><h3>Summary</h3><div id="detail-summary" class="content"></div></div>
+            <div class="detail-section"><h3>Transcript</h3><div id="detail-transcript" class="content transcript"></div></div>
+            <div class="save-row">
+              <button id="detail-drive-btn" class="secondary-btn">Save to Google Drive</button>
+              <a id="detail-drive-link" class="hidden" target="_blank" rel="noopener">Open in Drive ↗</a>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <footer class="footer">Nancy's English School &copy; <span id="year"></span></footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
